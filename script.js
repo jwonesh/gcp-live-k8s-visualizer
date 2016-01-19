@@ -65,6 +65,17 @@ var matchesLabelQuery = function(labels, selector) {
 	return match;
 }
 
+var getColor  = function(){
+ max = 255;
+ min = 0;
+
+ r = Math.floor(Math.random() * (max - min + 1)) + min;;
+ g = Math.floor(Math.random() * (max - min + 1)) + min;;
+ b = Math.floor(Math.random() * (max - min + 1)) + min;;
+
+ return '\'rgb(' + r + ',' + g + ',' + b + ')\'';
+}
+
 var connectControllers = function() {
     connectUses();
 	for (var i = 0; i < controllers.items.length; i++) {
@@ -81,7 +92,7 @@ var connectControllers = function() {
 					source: 'controller-' + controller.metadata.name,
 					target: 'pod-' + pod.metadata.name,
 					anchors:["Bottom", "Bottom"],
-					paintStyle:{lineWidth:5,strokeStyle:'rgb(51,105,232)'},
+					paintStyle:{lineWidth:5,strokeStyle:eval(getColor())},
 					joinStyle:"round",
 					endpointStyle:{ fillStyle: 'rgb(51,105,232)', radius: 7 },
 					connector: ["Flowchart", { cornerRadius:5 }]});
@@ -91,16 +102,17 @@ var connectControllers = function() {
 	for (var i = 0; i < services.items.length; i++) {
 		var service = services.items[i];
     //            if (service.metadata.name == 'kubernetes' || service.metadata.name == 'skydns' || service.metadata.name == 'kubernetes-ro') { continue; }
+                var rgb = eval(getColor());
 		for (var j = 0; j < pods.items.length; j++) {
 			var pod = pods.items[j];
       //console.log('connect service: ' + 'service-' + service.metadata.name + ' to pod-' + pod.metadata.name);
-			if (matchesLabelQuery(pod.metadata.labels, service.spec.selector)) {
+                        if (matchesLabelQuery(pod.metadata.labels, service.spec.selector)) {
 				jsPlumb.connect(
 					{
 						source: 'service-' + service.metadata.name,
 						target: 'pod-' + pod.metadata.name,
 						anchors:["Bottom", "Top"],
-						paintStyle:{lineWidth:5,strokeStyle:'rgb(0,153,57)'},
+						paintStyle:{lineWidth:5,strokeStyle:rgb},
 						endpointStyle:{ fillStyle: 'rgb(0,153,57)', radius: 7 },
 						connector:["Flowchart", { cornerRadius:5 }]});
 			}
