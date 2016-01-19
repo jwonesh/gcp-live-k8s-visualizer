@@ -221,6 +221,7 @@ var renderGroups = function() {
 	var y = 10;
 	var serviceLeft = 0;
 	var groupOrder = makeGroupOrder();
+        var newGroups = 0;
   var counts = {} 
 	$.each(groupOrder, function(ix, key) {
 		list = groups[key];
@@ -236,16 +237,20 @@ var renderGroups = function() {
       console.log(value);
       var phase = value.status.phase ? value.status.phase.toLowerCase() : '';
 			if (value.type == "pod") {
+                                var key = value.metadata.labels.name;
+                                counts[key] = key in counts ? counts[key] + 1 : 0;
 				eltDiv = $('<div class="window pod ' + phase + '" title="' + value.metadata.name + '" id="pod-' + value.metadata.name +
-					'" style="left: ' + (x + 250) + '; top: ' + (y + 160) + '"/>');
+					'" style="left: ' + (x + 250 + counts[key] * 200 + newGroups * 100) + '; top: ' + (y + 160) + '"/>');
 				eltDiv.html('<span>' + 
           truncate(value.metadata.name, 8, true) +
           (value.metadata.labels.version ? "<br/>" + value.metadata.labels.version : "") + "<br/><br/>" +
           "(" + (value.spec.nodeName ? truncate(value.spec.nodeName, 6) : "None")  +")" +
           '</span>');
 			} else if (value.type == "service") {
+                                var key = value.metadata.labels.name;
+                                counts[key] = key in counts ? counts[key] + 1 : 0;
 				eltDiv = $('<div class="window wide service ' + phase + '" title="' + value.metadata.name + '" id="service-' + value.metadata.name +
-					'" style="left: ' + 75 + '; top: ' + y + '"/>');
+					'" style="left: ' + (75 + counts[key] * 200) + '; top: ' + y + ';"/>');
 				eltDiv.html('<span>' + 
           value.metadata.name +
           (value.metadata.labels.version ? "<br/><br/>" + value.metadata.labels.version : "") + 
@@ -270,7 +275,8 @@ var renderGroups = function() {
 			div.append(eltDiv);
 			x += 130;
 		});
-		y += 400;
+                newGroups += 1;
+		y += 150;
 		serviceLeft += 200;
 		elt.append(div);
 	});
@@ -287,7 +293,7 @@ var insertUse = function(name, use) {
 
 var loadData = function() {
 	var deferred = new $.Deferred();
-	var req1 = $.getJSON("/api/v1/pods?labelSelector=visualize%3Dtrue", function( data ) {
+	var req1 = $.getJSON("/api/v1/pods?labelSelector=app%20in%20(afs-microservice-vendor,discovery-service)", function( data ) {
 		pods = data;
 		$.each(data.items, function(key, val) {
     	val.type = 'pod';
@@ -302,7 +308,7 @@ var loadData = function() {
     });
 	});
 
-	var req2 = $.getJSON("/api/v1/replicationcontrollers?labelSelector=visualize%3Dtrue", function( data ) {
+	var req2 = $.getJSON("/api/v1/replicationcontrollers?labelSelector=name%20in%20(afs-microservice-vendor-controller)", function( data ) {
 		controllers = data;
 		$.each(data.items, function(key, val) {
       val.type = 'replicationController';
@@ -311,7 +317,7 @@ var loadData = function() {
 	});
 
 
-	var req3 = $.getJSON("/api/v1/services?labelSelector=visualize%3Dtrue", function( data ) {
+	var req3 = $.getJSON("/api/v1/services?labelSelector=app+in(default)", function( data ) {
 		services = data;
 		//console.log("loadData(): Services");
 		//console.log(services);
@@ -357,7 +363,7 @@ function refresh(instance) {
 
 		setTimeout(function() {
 			refresh(instance);
-		}, 2000);
+		}, 2000000);
   });
 }
 
